@@ -13,16 +13,12 @@ import base64
 nltk.download('stopwords')
 nltk.download('punkt')
 nltk.download('wordnet')
+nltk.download('punkt_tab')
 
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 lemmatizer = WordNetLemmatizer()
 stop_words = set(stopwords.words('english'))
-
-data = pd.read_csv("data_to_work_with.csv")
-data = data.fillna("")
-
-data['combined_text'] = data['title'] + ' ' + data['organism'] + ' ' + data['summary'] + ' ' + data['overall_design']
 
 def custom_tokenizer(text):
     text = text.lower()
@@ -31,7 +27,7 @@ def custom_tokenizer(text):
     lemmatized_tokens = [lemmatizer.lemmatize(token) for token in tokens]
     return lemmatized_tokens
 
-vectorizer = TfidfVectorizer(stop_words='english', tokenizer=custom_tokenizer)
+vectorizer = TfidfVectorizer(stop_words='english', tokenizer=custom_tokenizer, token_pattern=None)
 
 def generate_clusters_and_visualization(fetch_design, n_clusters, pmid_list):
     print("Getting geo_ids")
@@ -172,20 +168,21 @@ app.layout = html.Div([
         type="circle",
         children=[
             html.Div([
+                 dcc.Graph(
+                    id='cluster_graph',
+                    style={'height': '70vh', 'width': '100%'}
+                ),
+                html.Div([
                 dcc.Graph(
                     id='cosine_similarity_graph',
                     style={'height': '70vh', 'width': '48%'}
-                ),
-                dcc.Graph(
-                    id='cluster_graph',
-                    style={'height': '70vh', 'width': '48%'}
-                ),
-            ], style={'display': 'flex', 'justifyContent': 'space-between'}),
-            
-            html.Div(
+                ), html.Div(
                 id='titles_list',
                 style={'width': '48%', 'marginLeft': '10px', 'marginTop': '20px'}
-            )
+            )], style={'display': 'flex', 'justify-content': 'space-between', 'align-items': 'center'})
+            ], style={'display': 'flex', 'flex-direction': 'column'}),
+            
+            
         ]
     ),
 ])
@@ -199,6 +196,8 @@ app.layout = html.Div([
     State('num-clusters', 'value'),
     State('upload-pmid-file', 'contents'),
 )
+
+
 def update_graph(n_clicks, fetch_design, n_clusters, contents):
     if n_clicks is None:
         return {}, {}, ""
