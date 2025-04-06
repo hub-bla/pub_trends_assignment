@@ -1,0 +1,7 @@
+nltk
+pandas
+plotly
+dash
+scikit-learn
+requests
+beautifulsoup4
